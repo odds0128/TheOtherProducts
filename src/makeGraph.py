@@ -3,14 +3,9 @@
 import glob
 
 import pandas as pd
-import numpy as np
-import pydotplus
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import re
-import sys
-from graphviz import Digraph
-
 
 #ファイル名を，'~の文字列を含むもの'で指定する．
 #stringで指定された文字列を含むファイルをcsv_file_wantedに入れる
@@ -35,9 +30,10 @@ elif len(csv_files_wanted) > 4:
         else:
             print("Input 'yes' or 'no': ", end="")
 
-for csv_file_wanted in csv_files_wanted:
-    print(" - " + csv_file_wanted)
-print()
+# for csv_file_wanted in csv_files_wanted:
+#     print(" - " + csv_file_wanted)
+# print()
+
 
 # csvファイルに含まれるカラムも同様に文字列一致で選ぶ
 first_csv_file = pd.read_csv(csv_files_wanted[0], header=0)
@@ -65,8 +61,8 @@ while True:
         break
     else:
         exit(0)
-print(" X-axis: " + x_axis)
-print()
+# print(" X-axis: " + x_axis)
+# print()
 
 # y軸も同様に選ぶ．こちらは複数選べるようにする．
 y_axes=[]
@@ -76,81 +72,120 @@ while True:
     if string == "":
         break
 
-    y_axis = ""
-    applied_columns = 0
+    applied_columns=[]
 
     for column_name in column_names_exist:
         if string in column_name:
-            y_axis = column_name
-            applied_columns+=1
+            applied_columns.append(column_name)
 
-    if applied_columns == 0:
+    if len(applied_columns) == 0:
         print("No such column.")
         print("Input another string: ", end="")
-    elif applied_columns > 1:
+    elif len(applied_columns) > 1:
         print("There are some columns fitted.")
-        print("Input unique string: ", end="")
-    elif applied_columns == 1:
-        y_axes.append(y_axis)
+        for i in range(len(applied_columns)):
+            print(str(i) + ": " + applied_columns[i])
+        print("Choose one by number")
+        string = input()
+        y_axes.append(applied_columns[int(string)])
+    elif len(applied_columns) == 1:
+        y_axes.append(applied_columns[0])
     else :
         exit(0)
 
-print(" Y-axes: " + str(y_axes))
-print()
+labels = []
+dfs    = []
+print("Which is labeled?")
+print("0: λ")
+print("1: Strategy")
 
-print("Writing now...")
-
-# TODO: グラフの描画
-# TODO: ちゃんと整形するのと，指定したy_axesのすべてについて出力できるようにする．
-try:
-    # csvファイルの取り込み
-    dfs    = []
-    labels = []
+title = input()
+if title == "0":
+    for file in csv_files_wanted:
+        print(file)
+        label = re.search('λ=[0-9.]+', file).group()
+        print (label)
+        labels.append(label)
+        dfs.append(pd.read_csv(file, header=0))
+elif title == "1":
     for file in csv_files_wanted:
         index = file.find(r',')
         labels.append(file[0:index])
         dfs.append(pd.read_csv(file, header=0))
+else:
+    print("Choose 0 or 1")
+    exit(0)
 
-    # グラフの描画
-    for y_axis in y_axes:
-        font = {'family': 'Times New Roman'}
-        mpl.rc('font', **font)
 
-        plt.style.use('ggplot')
-        plt.rcParams["font.size"] = 16
-        plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-        plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-        plt.axes( facecolor = "#FFFFFF" )
 
-        ax = plt.gca()
-        ax.spines['bottom'].set_color('#000000')
-        ax.spines[ 'left' ].set_color('#000000')
-        ax.yaxis.grid(True, which='major', linestyle='-', color='#CFCFCF')
+# print(" Y-axes: " + str(y_axes))
+print()
 
-    #    plt.hold(True)
+print("Writing now...")
 
-        i = 0
-        for df in dfs:
-            plt.plot(df[x_axis], df[y_axis], label = labels[i])
-            i += 1
+#  グラフの描画
+#  ちゃんと整形するのと，指定したy_axesのすべてについて出力できるようにする．
 
-        plt.title (y_axis)
-        plt.xlabel(x_axis)
-        plt.ylabel(y_axis)
+# csvファイルの取り込み
+# try:
+lambda_num = ""
+lambda_num = re.search("=[0-9.]+", csv_files_wanted[0]).group()
 
-        plt_legend = plt.legend(shadow = False, loc = 'lower right', frameon = True, fontsize = 16, numpoints = 1, facecolor = "#FFFFFF")
-        plt_legend.get_frame().set_edgecolor('#000000')
+# グラフの描画
+for y_axis in y_axes:
+    font = {'family': 'Times New Roman'}
+    mpl.rc('font', **font)
 
-        x_limit = df[x_axis].values[-1]
-        plt.xlim(0, x_limit)
-        plt.ylim(0)
+    plt.figure(figsize=(5.34, 3.93))
+    plt.style.use('ggplot')
+    plt.rcParams["font.size"] = 14
+    plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+    plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+    plt.axes( facecolor = "#FFFFFF" )
 
-        lambda_num = ""
-        lambda_num = re.search("λ=[0-9.]+", csv_files_wanted[0]).group()
-        plt.savefig('result_' + lambda_num +"_" + y_axis.strip() + '.eps')
-#        plt.show()
+    ax = plt.gca()
+    ax.spines['bottom'].set_color('#000000')
+    ax.spines[ 'left' ].set_color('#000000')
+    ax.yaxis.grid(True, which='major', linestyle='-', color='#CFCFCF')
+
+#    plt.hold(True)
+
+    i = 0
+
+    # 黒, 赤，グレイ，青，緑，黄色
+    colorlist = ["#000000", "#FF0000", "#848484", "#0010FD", "#31B404", "#FFFF00"]
+    for df in dfs:
+        plt.plot(df[x_axis], df[y_axis], color=colorlist[i], label = labels[i])
+        i += 1
+
+    if title == "0":
+        index = file.find(r',')
+        titleName = file[0:index]
+        plt.title (y_axis + " (" + titleName + ")")
+    elif title == "1":
+        plt.title (y_axis + " (" + u'\u03bb' + lambda_num + ")")
+
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
+
+    plt_legend = plt.legend(shadow = False, loc = 'lower right',
+                            frameon = True, fontsize = 14, numpoints = 1,
+                            facecolor = "#FFFFFF")
+    plt_legend.get_frame().set_edgecolor('#000000')
+
+    x_limit = df[x_axis].values[-1]
+    plt.xlim(0, x_limit)
+    plt.ylim(0)
+
+#    plt.savefig( y_axis.strip() + "_lambda" + lambda_num + '.eps')
+    if title == "0":
+        plt.savefig( y_axis.strip() + "_" + titleName + '.png')
+        plt.close()
+    else:
+        plt.savefig(y_axis.strip() + "_lambda" + lambda_num + '.png')
         plt.close()
 
-    # TODO: 出力したグラフを自動で保存させる
-except :
-    exit(0)
+print("Done.")
+print()
+# except Error:
+#     print(Error)

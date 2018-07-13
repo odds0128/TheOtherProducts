@@ -1,28 +1,37 @@
 #!/bin/bash
 
-FS="λ=7.5"
+FS=("λ=7.5" "λ=2.5" "λ=10" "λ=5.0")
 X="turn"
-Y=("Finished" "Communication" "Execution")
+# Y=("Communication" "Execution")
+Y=("Finished")
 
-for item in ${Y[@]}; do
-expect -c "
-spawn python makeGraph.py
+for fs in ${FS[@]} ; do
+    for item in ${Y[@]}; do
 
-expect \"file names:\" {
-send \"$FS\n\"
-} \"(yes/no)\" {
-send \"yes\n\"
-}
+    expect -c "
+    spawn python /Users/r.funato/Documents/Practices/Python/Production/src/makeGraph.py
 
-expect \"x-axis\" {
-send \"$X\n\"
-}
+    expect \"file names:\" {
+    send \"$fs\n\"
+    } \"(yes/no)\" {
+    send \"yes\n\"
+    }
+
+    expect \"x-axis\" {
+    send \"$X\n\"
+    }
 
     expect \"y-axes\" {
     send \"$item\n\"
     }
-send \"\n\"
+    send \"\n\"
 
-interact
-"
+    expect \"Which is labeled?\" {
+    send \"1\n\"
+    }
+
+    interact
+    "
+
+    done
 done
