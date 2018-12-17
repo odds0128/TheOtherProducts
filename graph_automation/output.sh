@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FS=("λ=7.5" "λ=2.5" "λ=10" "λ=5.0")
+FS=("λ=1.0"  "λ=3.0" "λ=5.0" "λ=7.0" )
 X="turn"
 # Y=("Communication" "Execution")
 Y=("Finished")
@@ -9,7 +9,7 @@ for fs in ${FS[@]} ; do
     for item in ${Y[@]}; do
 
     expect -c "
-    spawn python /Users/r.funato/Documents/Practices/Python/Production/src/makeGraph.py
+    spawn python /Users/r.funato/Documents/simple_products/graph_automation/makeGraph.py
 
     expect \"file names:\" {
     send \"$fs\n\"
